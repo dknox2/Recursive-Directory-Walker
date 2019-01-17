@@ -14,16 +14,18 @@ public class DirectoryWalker {
 	
 	public List<File> searchAll(File startingDir, String text) {
 		this.files.clear();
-		addAll(startingDir, text);
+		this.addAll(startingDir, text);
 		
 		return new ArrayList<File>(this.files);
 	}
 	
 	private void addAll(File filePath, String text) {
 		if (filePath.isDirectory()) {
-			for (var file : filePath.listFiles()) {
-				addAll(file, text);
-			}
+			try {
+				for (var file : filePath.listFiles()) {
+					this.addAll(file, text);
+				}
+			} catch (NullPointerException e) {}
 		}
 		
 		if (this.fileMatches(filePath, text)) {
@@ -40,9 +42,11 @@ public class DirectoryWalker {
 	
 	private void addFilesOnly(File filePath, String text) {
 		if (filePath.isDirectory()) {
-			for (var file : filePath.listFiles()) {
-				addFilesOnly(file, text);
-			}
+			try {
+				for (var file : filePath.listFiles()) {
+					addFilesOnly(file, text);
+				}	
+			} catch (NullPointerException e) {}
 		} else if (this.fileMatches(filePath, text)) {
 			this.files.add(filePath);
 		}
@@ -57,10 +61,15 @@ public class DirectoryWalker {
 	
 	private void addDirsOnly(File filePath, String text) {
 		if (filePath.isDirectory()) {
-			this.files.add(filePath);
-			for (var file : filePath.listFiles()) {
-				this.addDirsOnly(file, text);
+			if (this.fileMatches(filePath, text)) {
+				this.files.add(filePath);	
 			}
+			
+			try {
+				for (var file : filePath.listFiles()) {
+					this.addDirsOnly(file, text);
+				}				
+			} catch (NullPointerException e) {}
 		}
 	}
 	

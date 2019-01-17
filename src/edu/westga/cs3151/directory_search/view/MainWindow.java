@@ -20,36 +20,47 @@ import javax.swing.UIManager;
 
 import edu.westga.cs3151.directory_search.model.DirectoryWalker;
 
-public class MainWindow extends JFrame {
+public class MainWindow {
 
-	private static final long serialVersionUID = 1L;
-
-	private DirectoryWalker searcher;
+	private DirectoryWalker directoryWalker;
 	
+	private JFrame frame;
 	private JPanel panel;
 	
 	private JRadioButton allButton;
 	private JRadioButton onlyFilesButton;
 	private JRadioButton onlyDirsButton;
 	
+	private JRadioButton fullPathNamesButton;
+	private JRadioButton fileNamesOnlyButton;
+	
 	private JTextField patternMatchTextField;
 	
 	private JTextArea outputTextArea;
 
 	public MainWindow() {
-		this.searcher = new DirectoryWalker();
+		this.directoryWalker = new DirectoryWalker();
+		
+		this.frame = new JFrame();
+		this.panel = new JPanel();
 		
 		this.allButton = new JRadioButton("Files and directories");
 		this.onlyFilesButton = new JRadioButton("Files only");
-		this.onlyDirsButton = new JRadioButton("Directories only");	
+		this.onlyDirsButton = new JRadioButton("Directories only");
 		
-		this.panel = new JPanel();
+		this.fullPathNamesButton = new JRadioButton("Full path names");
+		this.fileNamesOnlyButton = new JRadioButton("File names only");
 	
 		this.patternMatchTextField = new JTextField(20);
 		
 		this.outputTextArea = new JTextArea();
-		this.outputTextArea.setEditable(false);
 	}
+		
+	public void launch() {
+		this.buildWindow();
+		this.frame.setVisible(true);
+	}
+
 	
 	private void buildWindow() {
 		try {
@@ -57,34 +68,29 @@ public class MainWindow extends JFrame {
 	            UIManager.getSystemLookAndFeelClassName());	
 		} catch (Exception e) {}
 		
-		this.setTitle("Recursive Directory Walker");
+		this.frame.setResizable(false);
+		this.frame.setTitle("Recursive Directory Walker");
+		this.frame.setLayout(new BoxLayout(this.frame.getContentPane(), BoxLayout.Y_AXIS));
 		
 		this.addSearchSettings();
+		this.addOutputFormatSettings();
+		
 		this.addPatternTextField();
 
 		this.addSearchButton();
 		
-		this.outputTextArea.setColumns(60);
-		this.outputTextArea.setRows(9);
-		
-		var scrollPane = new JScrollPane(this.outputTextArea);
-		var outputTextPanel = new JPanel();
-		outputTextPanel.add(scrollPane);
-		
-		this.add(this.panel);
-		this.add(outputTextPanel);
-		
-		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
-		this.pack();
-	}
-	
-	public void launch() {
-		this.buildWindow();
-		this.setVisible(true);
+		this.addOutputTextArea();
+
+		this.frame.pack();
 	}
 
 	private void searchFiles() {
 		var chooser = this.buildFileChooser();
+		var value = chooser.showOpenDialog(null);
+		if (value != JFileChooser.APPROVE_OPTION) {
+		    return;
+		}
+		
 		var startingDir = chooser.getSelectedFile();
 		
 		if (startingDir != null) {
@@ -92,22 +98,28 @@ public class MainWindow extends JFrame {
 			
 			List<File> foundFiles;
 			if (this.allButton.isSelected()) {
-				foundFiles = searcher.searchAll(startingDir, pattern);	
+				foundFiles = directoryWalker.searchAll(startingDir, pattern);	
 			} else if (this.onlyFilesButton.isSelected()) {
-				foundFiles = searcher.searchFilesOnly(startingDir, pattern);
+				foundFiles = directoryWalker.searchFilesOnly(startingDir, pattern);
 			} else {
-				foundFiles = searcher.searchDirsOnly(startingDir, pattern);
+				foundFiles = directoryWalker.searchDirsOnly(startingDir, pattern);
 			}
 			
 			this.outputFoundFiles(foundFiles);
 		}
 	}
 	
-	public void outputFoundFiles(List<File> filesAndDirs) {
+	private void outputFoundFiles(List<File> filesAndDirs) {
 		var outputTextBuilder = new StringBuilder();
 		
 		for (var file : filesAndDirs) {
-			outputTextBuilder.append(file.getAbsolutePath() + System.lineSeparator());
+			if (this.fullPathNamesButton.isSelected()) {
+				outputTextBuilder.append(file.getAbsolutePath());
+			} else {
+				outputTextBuilder.append(file.getName());
+			}
+			
+			outputTextBuilder.append(System.lineSeparator());
 		}
 		
 		this.outputTextArea.setText(outputTextBuilder.toString());
@@ -117,8 +129,6 @@ public class MainWindow extends JFrame {
 		var chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setAcceptAllFileFilterUsed(false);
-		
-		chooser.showOpenDialog(null);
 		
 		return chooser;
 	}
@@ -141,15 +151,31 @@ public class MainWindow extends JFrame {
 		searchSettingsGroup.add(this.onlyFilesButton);
 		searchSettingsGroup.add(this.onlyDirsButton);
 		
-		allButton.setSelected(true);
+		this.allButton.setSelected(true);
 		
 		var searchSettingsPanel = new JPanel();
 		searchSettingsPanel.setLayout(new BoxLayout(searchSettingsPanel, BoxLayout.Y_AXIS));
-		searchSettingsPanel.add(allButton);
-		searchSettingsPanel.add(onlyFilesButton);
-		searchSettingsPanel.add(onlyDirsButton);
+		
+		searchSettingsPanel.add(this.allButton);
+		searchSettingsPanel.add(this.onlyFilesButton);
+		searchSettingsPanel.add(this.onlyDirsButton);
 
 		this.panel.add(searchSettingsPanel);
+	}
+	
+	private void addOutputFormatSettings() {
+		var outputSettingsGroup = new ButtonGroup();
+		outputSettingsGroup.add(this.fullPathNamesButton);
+		outputSettingsGroup.add(this.fileNamesOnlyButton);
+		
+		this.fullPathNamesButton.setSelected(true);
+		
+		var outputSettingsPanel = new JPanel();
+		outputSettingsPanel.setLayout(new BoxLayout(outputSettingsPanel, BoxLayout.Y_AXIS));
+		outputSettingsPanel.add(this.fullPathNamesButton);
+		outputSettingsPanel.add(this.fileNamesOnlyButton);
+		
+		this.panel.add(outputSettingsPanel);
 	}
 	
 	private void addPatternTextField() {
@@ -159,5 +185,18 @@ public class MainWindow extends JFrame {
 		patternPanel.add(this.patternMatchTextField);
 		
 		this.panel.add(patternPanel);
+	}
+	
+	private void addOutputTextArea() {
+		this.outputTextArea.setEditable(false);
+		this.outputTextArea.setColumns(69);
+		this.outputTextArea.setRows(9);
+		
+		var scrollPane = new JScrollPane(this.outputTextArea);
+		var outputTextPanel = new JPanel();
+		outputTextPanel.add(scrollPane);
+		
+		this.frame.add(this.panel);
+		this.frame.add(outputTextPanel);
 	}
 }
