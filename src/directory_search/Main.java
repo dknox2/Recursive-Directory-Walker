@@ -1,6 +1,6 @@
-package edu.westga.cs3151.directory_search;
+package directory_search;
 
-import edu.westga.cs3151.directory_search.view.MainWindow;
+import directory_search.view.MainWindow;
 
 public class Main {
 

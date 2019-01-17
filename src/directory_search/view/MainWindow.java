@@ -1,4 +1,4 @@
-package edu.westga.cs3151.directory_search.view;
+package directory_search.view;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +18,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
-import edu.westga.cs3151.directory_search.model.DirectoryWalker;
+import directory_search.model.DirectoryWalker;
 
 public class MainWindow {
 

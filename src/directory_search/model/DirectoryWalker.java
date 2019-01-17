@@ -1,4 +1,4 @@
-package edu.westga.cs3151.directory_search.model;
+package directory_search.model;
 
 import java.io.File;
 import java.util.ArrayList;
