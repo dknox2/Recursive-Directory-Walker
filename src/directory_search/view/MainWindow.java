@@ -94,6 +94,7 @@ public class MainWindow {
 		var startingDir = chooser.getSelectedFile();
 		
 		if (startingDir != null) {
+			this.directoryWalker.setSearchFileNamesOnly(this.fileNamesOnlyButton.isSelected());
 			var pattern = this.patternMatchTextField.getText();
 			
 			List<File> foundFiles;

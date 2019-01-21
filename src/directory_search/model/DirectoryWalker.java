@@ -6,10 +6,12 @@ import java.util.List;
 
 public class DirectoryWalker {
 	
+	private boolean searchFileNamesOnly;
 	private List<File> files;
 
 	public DirectoryWalker() {
 		this.files = new ArrayList<File>();
+		this.searchFileNamesOnly = false;
 	}
 	
 	public List<File> searchAll(File startingDir, String text) {
@@ -73,8 +75,16 @@ public class DirectoryWalker {
 		}
 	}
 	
+	public void setSearchFileNamesOnly(boolean toSearch) {
+		this.searchFileNamesOnly = toSearch;
+	}
+	
 	private boolean fileMatches(File filePath, String text) {
-		return text.isEmpty() || filePath.getAbsolutePath().toLowerCase().contains(text.toLowerCase());
+		if (this.searchFileNamesOnly) {
+			return text.isEmpty() || filePath.getName().toLowerCase().contains(text.toLowerCase());
+		} else {
+			return text.isEmpty() || filePath.getAbsolutePath().toLowerCase().contains(text.toLowerCase());
+		}
 	}
 	
 }
